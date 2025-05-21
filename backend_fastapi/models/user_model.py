@@ -127,3 +127,15 @@ def delete_user(user_id):
         return None
     finally:
         session.close()
+
+def authenticate_user(email: str, password: str):
+    session = common.create_connect_session()
+    if session is None:
+        return None
+    try:
+        user = session.query(User).filter(User.email == email).first()
+        if user and user.password == password:
+            return user
+        return None
+    finally:
+        session.close()

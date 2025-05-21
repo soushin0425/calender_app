@@ -1,8 +1,9 @@
 import sys
 sys.path.append('../')
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from models.user_model import authenticate_user
 
 auth_endpoint = APIRouter()
 
@@ -24,7 +25,11 @@ def handle_login(user: PostAuthAdminRequest):
 
 @auth_endpoint.post("/auth/student/login", tags=["auth"])
 def handle_student_login(user: PostAuthStudentRequest):
-    """
-    学生ログインに使用するエンドポイント
-    """
-    return {"user": f"メールアドレス {user.email} パスワード {user.password} ユーザを作成するエンドポイント"}
+    found_user = authenticate_user(user.email, user.password)
+    if not found_user:
+        raise HTTPException(status_code=401, detail="メールアドレスまたはパスワードが間違っています")
+    return {
+        "id": found_user.id,
+        "email": found_user.email,
+        "is_administrator": found_user.is_administrator
+    }
